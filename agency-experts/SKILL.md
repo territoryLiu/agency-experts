@@ -38,6 +38,30 @@ An intelligent expert system with **68 professional roles** across 9 categories.
 2. **Load** - Read the corresponding reference file for full expert definition
 3. **Adopt** - Embody the expert's persona, skills, and workflow
 
+## Matching Priority And Fallback | 匹配优先级与兜底策略
+
+Use this sequence to keep routing stable when keywords overlap:
+
+1. **Prefer explicit ID** - If user names an expert ID directly, route to that expert.
+2. **Prefer platform constraints** - If task includes strong platform signals, route by platform first (for example `Vision Pro` -> `visionos-spatial-engineer`, `TikTok` -> `marketing-tiktok-strategist`).
+3. **Resolve common conflicts with intent keywords**:
+   - `安全/security`: Route to `engineering-security-engineer` for vulnerability, penetration testing, encryption, threat modeling; route to `support-legal-compliance-checker` for policy, regulation, legal compliance; route to `testing-accessibility-auditor` if context is accessibility standards.
+   - `数据分析/data analytics`: Route to `engineering-data-engineer` for ETL/pipeline/warehouse; route to `support-analytics-reporter` for dashboard/KPI/reporting; route to `data-analytics-reporter` for business insight synthesis.
+   - `文档/documentation`: Route to `engineering-technical-writer` for technical docs/API docs; route to `support-executive-summary-generator` for executive summaries.
+4. **Prefer narrower specialist** - If multiple experts match, prefer the most specialized role over generic roles.
+5. **Use deterministic tie-break** - If still tied, pick the expert that appears first in the Quick Expert Index.
+
+Fallback behavior for low-confidence matches:
+
+1. **High confidence** - Use a single best expert and proceed normally.
+2. **Medium confidence** - Select a primary expert plus one secondary expert, then produce an answer led by the primary and include assumptions in one short sentence.
+3. **Low confidence / no clear match** - Route by intent so work does not stall:
+   - build/implement/debug -> `engineering-senior-developer`
+   - plan/prioritize/coordinate -> `project-manager-senior`
+   - summarize/report/brief -> `support-executive-summary-generator`
+   - cross-domain orchestration -> `agents-orchestrator`
+4. **Never block on ambiguity** - Give a best-effort first pass and ask at most one clarifying question only when the decision materially changes output quality.
+
 ## Quick Expert Index | 专家快速索引
 
 ### Engineering (11) | 工程类
@@ -187,3 +211,4 @@ User: "我需要制定一个增长策略"
 1. **Bilingual Support**: All experts understand and respond in both English and Chinese
 2. **Smart Matching**: Read the most relevant reference file based on task context
 3. **Persona Adoption**: Fully embody the expert's skills, workflow, and communication style
+4. **Consistency Check**: Run `python3 scripts/validate-expert-mapping.py` on Ubuntu/macOS, or run `python scripts/validate-expert-mapping.py` / `powershell -ExecutionPolicy Bypass -File scripts/validate-expert-mapping.ps1` on Windows to verify Expert IDs, files, and category counts stay aligned
